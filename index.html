@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PinBoard - Pinterest Clone</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    }
+    
+    body {
+      background-color: #f0f0f0;
+      color: #333;
+    }
+    
+    /* Navbar */
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 64px;
+      background-color: white;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+    }
+    
+    .logo {
+      color: #e60023;
+      font-weight: bold;
+      font-size: 24px;
+      margin-right: 16px;
+    }
+    
+    .search-container {
+      flex: 1;
+      max-width: 800px;
+      position: relative;
+    }
+    
+    .search-input {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 24px;
+      border: none;
+      background-color: #efefef;
+      font-size: 16px;
+    }
+    
+    .search-input:focus {
+      outline: none;
+      background-color: #e2e2e2;
+    }
+    
+    .search-icon {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #767676;
+    }
+    
+    .nav-icons {
+      display: flex;
+      align-items: center;
+      margin-left: 16px;
+    }
+    
+    .nav-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 8px;
+      cursor: pointer;
+    }
+    
+    .nav-icon:hover {
+      background-color: #efefef;
+    }
+    
+    .profile-pic {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background-color: #767676;
+    }
+    
+    /* Main Content */
+    .content {
+      margin-top: 88px;
+      padding: 0 16px;
+    }
+    
+    /* Masonry Grid */
+    .masonry-grid {
+      columns: 5 200px;
+      column-gap: 16px;
+    }
+    
+    @media (max-width: 1200px) {
+      .masonry-grid {
+        columns: 4 200px;
+      }
+    }
+    
+    @media (max-width: 900px) {
+      .masonry-grid {
+        columns: 3 200px;
+      }
+    }
+    
+    @media (max-width: 600px) {
+      .masonry-grid {
+        columns: 2 200px;
+      }
+    }
+    
+    /* Pin Card */
+    .pin {
+      break-inside: avoid;
+      margin-bottom: 16px;
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      background-color: white;
+      transition: transform 0.2s ease;
+      cursor: pointer;
+    }
+    
+    .pin:hover {
+      transform: scale(1.02);
+    }
+    
+    .pin:hover .pin-overlay {
+      opacity: 1;
+    }
+    
+    .pin img {
+      width: 100%;
+      display: block;
+    }
+    
+    .pin-content {
+      padding: 12px;
+    }
+    
+    .pin-title {
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+    
+    .pin-description {
+      color: #767676;
+      font-size: 14px;
+    }
+    
+    .pin-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: calc(100% - 60px);
+      background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.3));
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 16px;
+    }
+    
+    .pin-actions {
+      display: flex;
+      justify-content: flex-end;
+    }
+    
+    .pin-action {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 8px;
+      cursor: pointer;
+      color: #333;
+      font-weight: bold;
+    }
+    
+    .pin-save {
+      background-color: #e60023;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 24px;
+      cursor: pointer;
+      font-weight: bold;
+      width: auto;
+      height: auto;
+    }
+    
+    .user-info {
+      display: flex;
+      align-items: center;
+      margin-top: 8px;
+    }
+    
+    .user-pic {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background-color: #767676;
+      margin-right: 8px;
+    }
+    
+    .user-name {
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    /* Floating Action Button */
+    .fab {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 56px;
+      height: 56px;
+      border-radius: 28px;
+      background-color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+      z-index: 100;
+    }
+    
+    .fab:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+    
+    .plus-icon {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    /* Form Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.6);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background-color: white;
+      padding: 24px;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .modal-title {
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .close-button {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+
+    .form-input, .form-textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    .form-textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .form-button {
+      background-color: #e60023;
+      color: white;
+      border: none;
+      border-radius: 24px;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .form-button:hover {
+      background-color: #d50020;
+    }
+
+    /* Loading indicator */
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 20px;
+      font-size: 18px;
+      color: #767676;
+    }
+
+    .loading.active {
+      display: block;
+    }
+
+    /* Error message */
+    .error-message {
+      display: none;
+      text-align: center;
+      padding: 20px;
+      font-size: 18px;
+      color: #e60023;
+    }
+
+    .error-message.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <div class="navbar">
+    <div class="logo">PinBoard</div>
+    <div class="search-container">
+      <input type="text" class="search-input" placeholder="Search">
+      <div class="search-icon">🔍</div>
+    </div>
+    <div class="nav-icons">
+      <div class="nav-icon">🔔</div>
+      <div class="nav-icon">💬</div>
+      <div class="nav-icon">
+        <div class="profile-pic"></div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Main Content -->
+  <div class="content">
+    <div class="masonry-grid" id="pins-container">
+      <!-- Pins will be dynamically added here -->
+    </div>
+    <div id="loading" class="loading">Loading pins...</div>
+    <div id="error-message" class="error-message">Failed to load pins. Please try again later.</div>
+  </div>
+  
+  <!-- Floating Action Button -->
+  <div class="fab" id="create-pin-btn">
+    <div class="plus-icon">+</div>
+  </div>
+
+  <!-- Create Pin Modal -->
+  <div class="modal" id="create-pin-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">Create a New Pin</div>
+        <button class="close-button" id="close-modal">&times;</button>
+      </div>
+      <form id="create-pin-form">
+        <div class="form-group">
+          <label for="pin-title" class="form-label">Title</label>
+          <input type="text" id="pin-title" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label for="pin-description" class="form-label">Description</label>
+          <textarea id="pin-description" class="form-textarea" required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="pin-image" class="form-label">Image URL</label>
+          <input type="text" id="pin-image" class="form-input" value="/api/placeholder/300/400" required>
+        </div>
+        <div class="form-group">
+          <label for="pin-height" class="form-label">Image Height (px)</label>
+          <input type="number" id="pin-height" class="form-input" value="400" min="100" max="800" required>
+        </div>
+        <div class="form-group">
+          <label for="pin-username" class="form-label">Username</label>
+          <input type="text" id="pin-username" class="form-input" value="Username" required>
+        </div>
+        <button type="submit" class="form-button">Create Pin</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const pinsContainer = document.getElementById('pins-container');
+      const loadingElement = document.getElementById('loading');
+      const errorElement = document.getElementById('error-message');
+      const createPinBtn = document.getElementById('create-pin-btn');
+      const createPinModal = document.getElementById('create-pin-modal');
+      const closeModalBtn = document.getElementById('close-modal');
+      const createPinForm = document.getElementById('create-pin-form');
+      
+      let page = 1;
+      let loading = false;
+      let hasMorePins = true;
+
+      // API base URL
+      const API_URL = 'http://localhost:3000';
+
+      // Create pin HTML element
+      const createPin = (pin) => {
+        const imageHeight = pin.height || 400;
+        const imageUrl = pin.imageUrl || '/api/placeholder/300/400';
+        const username = pin.username || 'Username';
+        
+        return `
+          <div class="pin" data-id="${pin.id}">
+            <img src="${imageUrl}" alt="${pin.title}" style="height: ${imageHeight}px;">
+            <div class="pin-overlay">
+              <div class="pin-actions">
+                <div class="pin-action delete-pin" data-id="${pin.id}">🗑️</div>
+                <div class="pin-save" data-id="${pin.id}">Save</div>
+              </div>
+            </div>
+            <div class="pin-content">
+              <div class="pin-title">${pin.title}</div>
+              <div class="pin-description">${pin.description}</div>
+              <div class="user-info">
+                <div class="user-pic"></div>
+                <div class="user-name">${username}</div>
+              </div>
+            </div>
+          </div>
+        `;
+      };
+
+      // Fetch pins from API
+      const fetchPins = async () => {
+        if (loading || !hasMorePins) return;
+        
+        loading = true;
+        loadingElement.classList.add('active');
+        errorElement.classList.remove('active');
+        
+        try {
+          const response = await fetch(`${API_URL}/pins`);
+          
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          
+          const pins = await response.json();
+          
+          if (pins.length === 0) {
+            hasMorePins = false;
+            if (page === 1) {
+              // If no pins at all, show some default pins
+              generateDefaultPins();
+            }
+          } else {
+            pins.forEach(pin => {
+              pinsContainer.innerHTML += createPin(pin);
+            });
+            page++;
+          }
+        } catch (error) {
+          console.error('Error fetching pins:', error);
+          errorElement.classList.add('active');
+          
+          // If error on first load, show default pins
+          if (page === 1) {
+            generateDefaultPins();
+          }
+        } finally {
+          loading = false;
+          loadingElement.classList.remove('active');
+        }
+      };
+
+      // Generate default pins if API fails
+      const generateDefaultPins = () => {
+        const defaultPins = [
+          {
+            id: 1,
+            imageUrl: '/api/placeholder/300/400',
+            title: 'Delicious Homemade Pizza',
+            description: 'Try this amazing recipe for dinner tonight!',
+            height: 400,
+            username: 'FoodLover'
+          },
+          {
+            id: 2,
+            imageUrl: '/api/placeholder/300/200',
+            title: 'Minimalist Living Room',
+            description: 'Interior design inspiration for modern homes',
+            height: 200,
+            username: 'DesignPro'
+          },
+          {
+            id: 3,
+            imageUrl: '/api/placeholder/300/500',
+            title: 'Mountain Hiking Adventure',
+            description: 'Breathtaking views from last weekend\'s trip',
+            height: 500,
+            username: 'OutdoorExplorer'
+          },
+          {
+            id: 4,
+            imageUrl: '/api/placeholder/300/350',
+            title: 'DIY Plant Hangers',
+            description: 'Easy project for beginners',
+            height: 350,
+            username: 'CraftyCreator'
+          },
+          {
+            id: 5,
+            imageUrl: '/api/placeholder/300/280',
+            title: 'Summer Fashion Trends 2025',
+            description: 'What everyone will be wearing this season',
+            height: 280,
+            username: 'FashionForward'
+          }
+        ];
+        
+        defaultPins.forEach(pin => {
+          pinsContainer.innerHTML += createPin(pin);
+        });
+      };
+
+      // Create a new pin
+      const createNewPin = async (pinData) => {
+        try {
+          const response = await fetch(`${API_URL}/pins`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(pinData)
+          });
+          
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          
+          const newPin = await response.json();
+          pinsContainer.insertAdjacentHTML('afterbegin', createPin(newPin));
+          
+          return true;
+        } catch (error) {
+          console.error('Error creating pin:', error);
+          return false;
+        }
+      };
+
+      // Delete a pin
+      const deletePin = async (id) => {
+        try {
+          const response = await fetch(`${API_URL}/pins/${id}`, {
+            method: 'DELETE'
+          });
+          
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          
+          // Remove pin from DOM
+          const pinElement = document.querySelector(`.pin[data-id="${id}"]`);
+          if (pinElement) {
+            pinElement.remove();
+          }
+          
+          return true;
+        } catch (error) {
+          console.error('Error deleting pin:', error);
+          return false;
+        }
+      };
+
+      // Initial fetch
+      fetchPins();
+
+      // Infinite scroll
+      window.addEventListener('scroll', () => {
+        if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
+          fetchPins();
+        }
+      });
+
+      // Search functionality
+      const searchInput = document.querySelector('.search-input');
+      searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          alert(`Searching for: ${searchInput.value}`);
+          searchInput.value = '';
+        }
+      });
+
+      // Modal functionality
+      createPinBtn.addEventListener('click', () => {
+        createPinModal.classList.add('active');
+      });
+
+      closeModalBtn.addEventListener('click', () => {
+        createPinModal.classList.remove('active');
+      });
+
+      // Close modal when clicking outside
+      window.addEventListener('click', (e) => {
+        if (e.target === createPinModal) {
+          createPinModal.classList.remove('active');
+        }
+      });
+
+      // Form submission
+      createPinForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const title = document.getElementById('pin-title').value;
+        const description = document.getElementById('pin-description').value;
+        const imageUrl = document.getElementById('pin-image').value;
+        const height = parseInt(document.getElementById('pin-height').value);
+        const username = document.getElementById('pin-username').value;
+        
+        const pinData = {
+          title,
+          description,
+          imageUrl,
+          height,
+          username
+        };
+        
+        const success = await createNewPin(pinData);
+        
+        if (success) {
+          createPinModal.classList.remove('active');
+          createPinForm.reset();
+        } else {
+          alert('Failed to create pin. Please try again.');
+        }
+      });
+
+      // Handle pin interactions
+      document.addEventListener('click', async (e) => {
+        // Save button
+        if (e.target.classList.contains('pin-save')) {
+          e.target.textContent = 'Saved';
+          e.target.style.backgroundColor = '#111';
+        }
+        
+        // Delete button
+        if (e.target.classList.contains('delete-pin')) {
+          const pinId = e.target.getAttribute('data-id');
+          if (confirm('Are you sure you want to delete this pin?')) {
+            await deletePin(pinId);
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>
